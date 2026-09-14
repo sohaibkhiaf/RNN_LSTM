@@ -14,6 +14,7 @@ from collections import Counter
 import re
 from string import punctuation
 
+from pathlib import Path
 
 print(f"Torch version: {torch.__version__}")
 print("\n\n")
@@ -617,6 +618,51 @@ while True:
 
   print(f'Predicted sentiment is {status} with a probability of {prob*100:.2f}%')
 
+print("\n\n")
+
+
+
+
+# saving model =============================================
+# create model dictory path
+MODEL_PATH= Path("checkpoints")
+MODEL_PATH.mkdir(parents=True,
+                 exist_ok=True)
+
+# create model save
+MODEL_NAME= "model_state_dict.pt"
+MODEL_SAVE_PATH= MODEL_PATH/ MODEL_NAME
+
+# save model state dict
+print(f"Saving model to: {MODEL_SAVE_PATH}")
+torch.save(obj=model.state_dict(),
+           f=MODEL_SAVE_PATH)
+print("\n\n")
+
+
+# loading and evaluating saved model =========================================
+torch.manual_seed(42)
+
+loaded_model = SentimentLSTM(vocab_size=len(vocabulary) +1, # +1 for padding =0
+                      output_size=1,
+                      embedding_dim=128,
+                      hidden_dim=128 ,
+                      num_layers=2,
+                      dropout_prob=0.3)
+
+loaded_model.load_state_dict(torch.load(f=MODEL_SAVE_PATH))
+
+loaded_model.to(device)
+
+torch.manual_seed(42)
+
+print("Loaded model eval:")
+eval_model(
+    model=loaded_model,
+    dataloader=val_dataloader,
+    loss_fn=loss_fn,
+    device=device
+)
 print("\n\n")
 
 
